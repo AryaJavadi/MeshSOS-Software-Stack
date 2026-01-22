@@ -17,3 +17,6 @@ pytest-asyncio>=0.21.0
 
 # Code quality (optional)
 ruff>=0.1.0
+
+# Meshtastic integration
+meshtastic>=2.0.0
