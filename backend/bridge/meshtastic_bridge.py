@@ -82,15 +82,21 @@ def convert_meshtastic_message_to_mesh_message(
     
     try:
         # Meshtastic provides node info via interface
-        if hasattr(interface, "getNode") and packet.get("fromId"):
-            node = interface.getNode(packet["fromId"])
-            if node:
-                from_id = node.get("user", {}).get("id", str(packet.get("fromId", "unknown")))
-                # Extract GPS position if available
-                position = node.get("position", {})
-                if position:
-                    lat = position.get("latitude_i", 0) / 1e7  # Meshtastic uses 1e7 scaling
-                    lon = position.get("longitude_i", 0) / 1e7
+        from_id = str(packet.get("fromId") or packet.get("from") or "unknown")
+
+        # lat/lon as none for now, we'll add position later by parsing position packets.
+        lat = None
+        lon = None
+
+        # if hasattr(interface, "getNode") and packet.get("fromId"):
+        #     node = interface.getNode(packet["fromId"])
+        #     if node:
+        #         from_id = node.get("user", {}).get("id", str(packet.get("fromId", "unknown")))
+        #         # Extract GPS position if available
+        #         position = node.get("position", {})
+        #         if position:
+        #             lat = position.get("latitude_i", 0) / 1e7  # Meshtastic uses 1e7 scaling
+        #             lon = position.get("longitude_i", 0) / 1e7
     except Exception as e:
         logger.debug(f"Could not extract node info: {e}")
         from_id = str(packet.get("fromId", packet.get("from", "unknown")))
