@@ -28,7 +28,7 @@ def init_db(db_path: Path = DEFAULT_DB_PATH) -> sqlite3.Connection:
     Returns:
         sqlite3.Connection: Database connection with row_factory set
     """
-    conn = sqlite3.connect(db_path)
+    conn = sqlite3.connect(db_path, check_same_thread=False)
     conn.row_factory = sqlite3.Row
     
     # Messages table

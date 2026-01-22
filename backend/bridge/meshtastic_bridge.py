@@ -18,6 +18,7 @@ import argparse
 import json
 import logging
 import sys
+import threading
 import time
 from pathlib import Path
 from typing import Any, Optional
@@ -31,6 +32,8 @@ from database import init_db, insert_message
 from models import MeshMessageModel, MessageType
 
 logger = logging.getLogger("meshtastic_bridge")
+
+DB_LOCK = threading.Lock()
 
 
 def _safe_truncate_utf8(s: str, max_bytes: int) -> str:
@@ -192,7 +195,8 @@ def run_meshtastic_bridge(
                 return
 
             # Store in database
-            insert_message(conn, msg)
+            with DB_LOCK:
+                insert_message(conn, msg)
             stats["stored"] += 1
             
             logger.info(
