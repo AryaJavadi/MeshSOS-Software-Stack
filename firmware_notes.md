@@ -12,6 +12,7 @@ Run the meshtastic bridge:
 Similar logic via Raspberry Pi 
 
 If running into issues w/ meshtastic library, create a venv and pip install there. 
+'''source venv/bin/activate'''
 
 for testing
 - have the nodes directly connected and send a message to see if it displays on log 
