@@ -16,10 +16,10 @@ If running into issues w/ meshtastic library, create a venv and pip install ther
 
 when nodes are directly connected, to view messages that's being written to sqlite db:
 '''
-sqlite3 backend/meshsos.db "select id,node_id,message_type,urgency,timestamp,payload from messages order by id desc limit 5;
+sqlite3 backend/meshsos.db "select id,node_id,message_type,urgency,timestamp,payload from messages order by id desc limit 5;"
 '''
 
 
 for later:
-- for position data: if nothing shows up, might have to change 'pub.subscribe(on_receive, "meshtastic.receive")' to ''pub.subscribe(on_receive, "meshtastic.receive.text")'
+- for position data likey change 'pub.subscribe(on_receive, "meshtastic.receive")' to ''pub.subscribe(on_receive, "meshtastic.receive.text")'
 - figure out logic on raspberry pi
