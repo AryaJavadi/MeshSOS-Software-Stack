@@ -7,6 +7,12 @@ Usage:
     python -m bridge.main /dev/stdin  # For testing with simulator
 """
 
+
+# -ben
+# we don't need this 
+# this is only for building a custom LoRa stack or testing w/ simulated frames 
+# just use meshtastic_bridge.py
+
 import json
 import logging
 import sys

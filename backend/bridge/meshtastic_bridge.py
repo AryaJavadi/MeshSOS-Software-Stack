@@ -12,6 +12,8 @@ Usage:
     python -m bridge.meshtastic_bridge /dev/ttyUSB0 --baudrate 115200
 """
 
+# This is for Meshtastic hardware (our case)
+
 from __future__ import annotations
 
 import argparse
