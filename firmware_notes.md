@@ -42,6 +42,8 @@ Since you are using a direct Ethernet connection with a USB-C adapter, follow th
     * Look for the `inet` address (typically `192.168.2.1`). This confirms your Mac is acting as the gateway.
     * The Raspberry Pi will almost always be assigned `192.168.2.2`.
 
+![if having issues with IP set these to manual this](image.png)
+
 ---
 
 ## 2. Remote Access (SSH)
