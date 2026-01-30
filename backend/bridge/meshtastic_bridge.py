@@ -147,7 +147,7 @@ def run_meshtastic_bridge(
     Uses Meshtastic's pubsub system to receive messages automatically.
     """
     if db_path is None:
-        db_path = Path(__file__).parent.parent / "meshsos.db"
+        db_path = Path(__file__).parent / "meshsos.db"
 
     conn = init_db(db_path)
     logger.info(f"Connected to database at {db_path}")

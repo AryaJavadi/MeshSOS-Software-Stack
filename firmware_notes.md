@@ -67,7 +67,8 @@ pip install meshtastic pydantic --break-system-packages
 ## 4. Deploy & Run Bridge
 
 1. Transfer the Script (in a NEW terminal tab)
-scp ~/Downloads/meshtastic_bridge.py syde-capstone@192.168.2.2:~/
+scp /Users/benjaminchung/MeshSOS-Software-Stack/backend/bridge/meshtastic_bridge.py \
+syde-capstone@192.168.2.2:~/
 
 2. Connect Hardware: Plug the Heltec Wireless LoRa tracker (ESP32S3 + SX1262) into one of the Pi's blue USB 3.0 ports.
 
@@ -79,3 +80,13 @@ Note: Usually this is /dev/ttyACM0
 4. Run the Bridge 
 
 python3 meshtastic_bridge.py /dev/ttyACM0
+
+
+To debug the raspberry pi and see things being plugged into it 
+run 'sudo dmesg | tail -n 20'
+
+- note: only use the black port when plugging in the Heltec node. blue port causes issues 
+
+if issues w/ database:
+
+scp /Users/benjaminchung/MeshSOS-Software-Stack/backend/database.py syde-capstone@192.168.2.2:~/
