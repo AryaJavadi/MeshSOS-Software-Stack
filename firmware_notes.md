@@ -51,7 +51,6 @@ Connect to the Pi from your Mac terminal using the project credentials:
 
 ```bash
 ssh syde-capstone@192.168.2.2
-
 password: capstone18
 
 ## 3. Environemnt and Dependency Setup
@@ -59,28 +58,25 @@ Once logged into the Pi, run these commands to install the necessary libraries f
 
 # Update the package repository
 sudo apt update
-
-# Install required Python libraries
-# Use --break-system-packages for the current Raspberry Pi OS version
 pip install meshtastic pydantic --break-system-packages
 
-## 4. Deploy & Run Bridge
+## 4. Deploy & Run Bridge 
+# ONLY DO IF RE FLASHING OR CHANGING, DON'T NEED TO DO EVERYTIME SINCE SD CARD
 
 1. Transfer the Script (in a NEW terminal tab)
 scp /Users/benjaminchung/MeshSOS-Software-Stack/backend/bridge/meshtastic_bridge.py \
 syde-capstone@192.168.2.2:~/
 
-2. Connect Hardware: Plug the Heltec Wireless LoRa tracker (ESP32S3 + SX1262) into one of the Pi's blue USB 3.0 ports.
+2. Connect Hardware: Plug the Heltec Wireless LoRa tracker (ESP32S3 + SX1262) into one of the Pi's BLACK USB 3.0 ports.
 
 3. Find the Serial Port 
 ls /dev/ttyACM*
 
 Note: Usually this is /dev/ttyACM0
 
+
 4. Run the Bridge 
-
 python3 meshtastic_bridge.py /dev/ttyACM0
-
 
 To debug the raspberry pi and see things being plugged into it 
 run 'sudo dmesg | tail -n 20'
