@@ -6,7 +6,7 @@ To find the USB serial device
 ls /dev/cu.*
 '''
 
-Run the meshtastic bridge:
+Run the meshtastic bridge (make sure in backend directory)
 '''python -m bridge.meshtastic_bridge /dev/cu.usbmodemXXXX'''
 
 Similar logic via Raspberry Pi 
