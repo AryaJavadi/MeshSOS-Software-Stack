@@ -86,22 +86,17 @@ def convert_meshtastic_message_to_mesh_message(
     lon = None
     
     try:
-        # Meshtastic provides node info via interface
         from_id = str(packet.get("fromId") or packet.get("from") or "unknown")
 
-        # lat/lon as none for now, we'll add position later by parsing position packets.
-        lat = None
-        lon = None
-
-        # if hasattr(interface, "getNode") and packet.get("fromId"):
-        #     node = interface.getNode(packet["fromId"])
-        #     if node:
-        #         from_id = node.get("user", {}).get("id", str(packet.get("fromId", "unknown")))
-        #         # Extract GPS position if available
-        #         position = node.get("position", {})
-        #         if position:
-        #             lat = position.get("latitude_i", 0) / 1e7  # Meshtastic uses 1e7 scaling
-        #             lon = position.get("longitude_i", 0) / 1e7
+        # Look up position from Meshtastic's node database
+        if interface and hasattr(interface, "nodes") and interface.nodes:
+            node_data = interface.nodes.get(from_id, {})
+            position = node_data.get("position", {})
+            if position:
+                lat = position.get("latitude")
+                lon = position.get("longitude")
+                if lat is not None and lon is not None:
+                    logger.debug(f"Position for {from_id}: {lat}, {lon}")
     except Exception as e:
         logger.debug(f"Could not extract node info: {e}")
         from_id = str(packet.get("fromId", packet.get("from", "unknown")))
@@ -191,10 +186,15 @@ def run_meshtastic_bridge(
             
             # Convert to our schema
             msg = convert_meshtastic_message_to_mesh_message(interface, packet, message_text)
-            
+
             if msg is None:
                 stats["ignored"] += 1
                 return
+
+            # Fill in position from cached position packets if still missing
+            if msg.lat is None and msg.node_id in node_positions:
+                msg.lat = node_positions[msg.node_id]["lat"]
+                msg.lon = node_positions[msg.node_id]["lon"]
 
             # Store in database
             with DB_LOCK:
@@ -208,6 +208,24 @@ def run_meshtastic_bridge(
         except Exception as e:
             stats["errors"] += 1
             logger.error(f"Error handling packet: {e}", exc_info=True)
+
+    # Track latest known positions from position packets
+    node_positions = {}
+
+    def on_position(packet: dict[str, Any], interface: Any) -> None:
+        """Callback when Meshtastic receives a position update."""
+        try:
+            from_id = str(packet.get("fromId") or packet.get("from") or "unknown")
+            decoded = packet.get("decoded", {})
+            position = decoded.get("position", {})
+            if position:
+                lat = position.get("latitude")
+                lon = position.get("longitude")
+                if lat is not None and lon is not None:
+                    node_positions[from_id] = {"lat": lat, "lon": lon}
+                    logger.info(f"📍 Position update: {from_id} @ {lat:.6f}, {lon:.6f}")
+        except Exception as e:
+            logger.debug(f"Error handling position packet: {e}")
 
     # Check if device exists before attempting connection
     import os
@@ -242,6 +260,7 @@ def run_meshtastic_bridge(
         
         # Subscribe to receive events - Meshtastic does the rest
         pub.subscribe(on_receive, "meshtastic.receive.text")
+        pub.subscribe(on_position, "meshtastic.receive.position")
         
         logger.info("Listening for Meshtastic messages (Ctrl+C to stop)")
         try:
@@ -251,9 +270,17 @@ def run_meshtastic_bridge(
             logger.info("Connected to Meshtastic device")
         
         # Keep running - Meshtastic handles message reception in background
+        # Also accept typed input to send messages from this terminal
+        logger.info("Type a message and press Enter to send, or Ctrl+C to stop")
         try:
             while True:
-                time.sleep(1)
+                try:
+                    line = input()
+                    if line.strip():
+                        interface.sendText(line.strip())
+                        logger.info(f"→ Sent: {line.strip()}")
+                except EOFError:
+                    break
         except KeyboardInterrupt:
             logger.info("Shutting down Meshtastic bridge (Ctrl+C)")
     except FileNotFoundError as e:

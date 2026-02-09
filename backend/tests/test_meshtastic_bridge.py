@@ -2,7 +2,7 @@ import time
 
 from models import MessageType
 
-from bridge.meshtastic_bridge import convert_meshtastic_packet_to_mesh_message
+from bridge.meshtastic_bridge import convert_meshtastic_message_to_mesh_message
 
 
 def test_convert_meshtastic_packet_prefers_json_payload():
@@ -27,7 +27,7 @@ def test_convert_meshtastic_packet_prefers_json_payload():
         },
     }
 
-    msg = convert_meshtastic_packet_to_mesh_message(packet)
+    msg = convert_meshtastic_message_to_mesh_message(None, packet, packet["decoded"]["text"])
     assert msg is not None
     assert msg.node_id == "node-001"
     assert msg.timestamp == now
@@ -39,7 +39,7 @@ def test_convert_meshtastic_packet_fallback_broadcast():
     now = int(time.time())
     packet = {"fromId": "!beef", "rxTime": now, "decoded": {"text": "hello world"}}
 
-    msg = convert_meshtastic_packet_to_mesh_message(packet)
+    msg = convert_meshtastic_message_to_mesh_message(None, packet, packet["decoded"]["text"])
     assert msg is not None
     assert msg.node_id == "!beef"
     assert msg.timestamp == now
@@ -50,7 +50,7 @@ def test_convert_meshtastic_packet_fallback_broadcast():
 def test_convert_meshtastic_packet_fallback_sos_detection():
     packet = {"fromId": "!cafe", "decoded": {"text": "SOS need help"}}
 
-    msg = convert_meshtastic_packet_to_mesh_message(packet)
+    msg = convert_meshtastic_message_to_mesh_message(None, packet, packet["decoded"]["text"])
     assert msg is not None
     assert msg.node_id == "!cafe"
     assert msg.message_type == MessageType.SOS
