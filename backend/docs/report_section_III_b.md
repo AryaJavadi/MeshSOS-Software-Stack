@@ -212,7 +212,7 @@ We are **confidently promoting Concept A** (custom lightweight stack) as our imp
 
 **Repository**: `/Users/aryajavadi/Projects/school/CAPSTONE/backend/`
 
-**Documentation**: See `backend/README.md` and `backend/docs/implementation_summary.md`
+**Documentation**: See `README.md` and `backend/docs/implementation_summary.md`
 
 ---
 

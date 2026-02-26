@@ -205,7 +205,7 @@ def main():
         print(f"Next steps:")
         print(f"  • View API docs: http://localhost:8000/docs")
         print(f"  • Run tests: pytest tests/")
-        print(f"  • Read documentation: backend/README.md")
+        print(f"  • Read documentation: README.md")
         print()
         
     except KeyboardInterrupt:
