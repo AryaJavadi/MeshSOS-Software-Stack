@@ -1,0 +1,21 @@
+[Unit]
+Description=MeshSOS FastAPI Backend
+After=network-online.target meshsos-bridge.service
+Wants=network-online.target meshsos-bridge.service
+
+[Service]
+Type=simple
+WorkingDirectory=/home/syde-capstone/backend
+EnvironmentFile=/home/syde-capstone/backend/meshsos.env
+Environment=PYTHONUNBUFFERED=1
+ExecStart=/home/syde-capstone/backend/.venv/bin/python -m uvicorn api.main:app --host ${MESHSOS_API_HOST} --port ${MESHSOS_API_PORT}
+Restart=on-failure
+RestartSec=5
+StartLimitIntervalSec=60
+StartLimitBurst=5
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=meshsos-api
+
+[Install]
+WantedBy=multi-user.target

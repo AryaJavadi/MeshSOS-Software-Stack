@@ -172,34 +172,73 @@ curl http://localhost:8000/routes | jq
 
 ## Deployment (Raspberry Pi)
 
-### Setup Script
+`systemd` auto-start works after one-time setup (`enable`). You do not need to run setup commands on every reboot.
+
+### 1) One-time setup
 
 ```bash
-#!/bin/bash
-# deploy.sh
+cd /home/syde-capstone/backend
 
-# Install dependencies
+# Install venv support and project dependencies
 sudo apt-get update
-sudo apt-get install -y python3-pip python3-venv
-
-# Create virtual environment
-python3 -m venv /opt/meshsos/venv
-source /opt/meshsos/venv/bin/activate
-pip install -r /opt/meshsos/backend/requirements.txt
-
-# Create systemd services
-sudo cp meshsos-bridge.service /etc/systemd/system/
-sudo cp meshsos-api.service /etc/systemd/system/
-
-# Enable and start
-sudo systemctl daemon-reload
-sudo systemctl enable meshsos-bridge meshsos-api
-sudo systemctl start meshsos-bridge meshsos-api
+sudo apt-get install -y python3-venv
+python3 -m venv /home/syde-capstone/backend/.venv
+/home/syde-capstone/backend/.venv/bin/pip install -r /home/syde-capstone/backend/requirements.txt
 ```
 
-### Systemd Service Files (to be created)
+Create or edit env config:
 
-See `docs/deployment_pi.md` for detailed deployment instructions.
+```bash
+cat > /home/syde-capstone/backend/meshsos.env << 'EOF'
+MESHSOS_BRIDGE_SERIAL_PORT=/dev/ttyACM0
+MESHSOS_BRIDGE_BAUDRATE=115200
+MESHSOS_API_HOST=0.0.0.0
+MESHSOS_API_PORT=8000
+EOF
+```
+
+Install service files:
+
+```bash
+sudo cp /home/syde-capstone/backend/meshsos-bridge.service /etc/systemd/system/
+sudo cp /home/syde-capstone/backend/meshsos-api.service /etc/systemd/system/
+```
+
+Enable and start:
+
+```bash
+sudo systemctl daemon-reload
+sudo systemctl enable meshsos-bridge meshsos-api
+sudo systemctl restart meshsos-bridge meshsos-api
+```
+
+### 2) Verify services
+
+```bash
+systemctl is-enabled meshsos-bridge meshsos-api
+systemctl is-active meshsos-bridge meshsos-api
+sudo systemctl status meshsos-bridge meshsos-api --no-pager
+curl http://127.0.0.1:8000/health
+```
+
+Logs:
+
+```bash
+sudo journalctl -u meshsos-bridge -f
+sudo journalctl -u meshsos-api -f
+```
+
+### 3) Reboot behavior
+
+After setup, reboot and check:
+
+```bash
+sudo reboot
+# reconnect via SSH, then:
+systemctl is-active meshsos-bridge meshsos-api
+```
+
+If both are `active`, autoboot is working.
 
 ## Development
 
