@@ -98,7 +98,6 @@ Messages sent as JSON matching the schema bypass heuristics and use exact fields
 ## Notes
 
 - Only one process can use a serial port at a time (exclusive lock)
-- For position data: may need to subscribe to `"meshtastic.receive"` instead of `"meshtastic.receive.text"`
 - Similar logic applies on Raspberry Pi — device paths are typically `/dev/ttyACM0` or `/dev/ttyUSB0`
 
 ---
@@ -118,6 +117,8 @@ Since you are using a direct Ethernet connection with a USB-C adapter, follow th
     * Open Terminal on your Mac and run: `ifconfig bridge100`.
     * Look for the `inet` address (typically `192.168.2.1`). This confirms your Mac is acting as the gateway.
     * The Raspberry Pi will almost always be assigned `192.168.2.2`.
+
+    Note - The university network blocks it. To bypass, use phone hotspot.
 
 ---
 

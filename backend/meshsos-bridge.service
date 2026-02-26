@@ -1,0 +1,21 @@
+[Unit]
+Description=MeshSOS Gateway Bridge
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/home/syde-capstone/backend
+EnvironmentFile=/home/syde-capstone/backend/meshsos.env
+Environment=PYTHONUNBUFFERED=1
+ExecStart=/home/syde-capstone/backend/.venv/bin/python -m bridge.meshtastic_bridge ${MESHSOS_BRIDGE_SERIAL_PORT} --baudrate ${MESHSOS_BRIDGE_BAUDRATE}
+Restart=on-failure
+RestartSec=5
+StartLimitIntervalSec=60
+StartLimitBurst=5
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=meshsos-bridge
+
+[Install]
+WantedBy=multi-user.target
