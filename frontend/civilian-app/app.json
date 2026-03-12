@@ -1,0 +1,69 @@
+{
+  "expo": {
+    "name": "MeshSOS",
+    "slug": "meshsos-civillian-app",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "dark",
+    "newArchEnabled": false,
+    "scheme": "meshsos",
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#0d1117"
+    },
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.meshsos.civilian",
+      "infoPlist": {
+        "NSBluetoothAlwaysUsageDescription": "MeshSOS uses Bluetooth to connect to your nearby LoRa node for emergency mesh communication.",
+        "NSBluetoothPeripheralUsageDescription": "MeshSOS uses Bluetooth to connect to your nearby LoRa node for emergency mesh communication.",
+        "NSLocationWhenInUseUsageDescription": "MeshSOS captures your GPS location to include with supply requests so responders know where you are.",
+        "NSLocationAlwaysUsageDescription": "MeshSOS captures your GPS location to include with supply requests so responders know where you are.",
+        "UIBackgroundModes": ["bluetooth-central", "location", "fetch", "remote-notification"]
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#0d1117"
+      },
+      "package": "com.meshsos.civilian",
+      "permissions": [
+        "android.permission.BLUETOOTH",
+        "android.permission.BLUETOOTH_ADMIN",
+        "android.permission.BLUETOOTH_SCAN",
+        "android.permission.BLUETOOTH_CONNECT",
+        "android.permission.ACCESS_FINE_LOCATION",
+        "android.permission.ACCESS_COARSE_LOCATION"
+      ]
+    },
+    "web": {
+      "favicon": "./assets/favicon.png",
+      "bundler": "metro"
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "react-native-ble-plx",
+        {
+          "isBackgroundEnabled": true,
+          "modes": ["peripheral", "central"],
+          "bluetoothAlwaysPermission": "Allow MeshSOS to connect to your LoRa node for emergency communication."
+        }
+      ],
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "Allow MeshSOS to use your location for supply requests."
+        }
+      ],
+      "expo-sqlite",
+      "expo-font"
+    ],
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}

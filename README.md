@@ -245,26 +245,41 @@ If both are `active`, autoboot is working.
 ### Project Structure
 
 ```
-backend/
-├── models.py              # Data models and schema
-├── database.py            # Database layer
-├── bridge/
-│   ├── __init__.py
-│   └── main.py           # Gateway bridge service
-├── api/
-│   ├── __init__.py
-│   └── main.py           # FastAPI application
-├── routing/
-│   ├── __init__.py
-│   └── engine.py         # Routing algorithms
-├── scripts/
-│   ├── __init__.py
-│   ├── simulate_node.py
-│   └── simulate_scenario.py
-├── tests/                # Unit and integration tests
+MeshSOS-Software-Stack/
+├── api/                         # FastAPI REST endpoints
+├── backend/                     # Python backend modules
+│   ├── models.py                # Data models and schema
+│   ├── database.py              # Database layer
+│   └── bridge/                  # Gateway bridge service
+├── routing/                     # Routing engine (distance / priority / blended)
+├── scripts/                     # Simulators and helper scripts
+├── tests/                       # Unit and integration tests
+├── frontend/
+│   ├── civilian-app/            # Expo React Native iOS app (civilian-facing)
+│   │   ├── app/                 # Expo Router screens
+│   │   ├── components/          # UI components
+│   │   ├── services/            # BLE service, mock service, message queue
+│   │   ├── store/               # Zustand state stores
+│   │   ├── config.ts            # MOCK_MODE flag
+│   │   └── README.md
+│   └── (responder-dashboard/)   # Vite + React web dashboard — coming soon
 ├── requirements.txt
 └── README.md
 ```
+
+### Running the civilian app
+
+```bash
+cd frontend/civilian-app
+npm install
+npx pod-install          # iOS native dependencies
+npm run ios              # Launch in iOS Simulator (mock mode)
+
+# Real LoRa hardware
+EXPO_PUBLIC_MOCK_MODE=false npm run ios
+```
+
+See [frontend/civilian-app/README.md](frontend/civilian-app/README.md) for full setup details.
 
 ### Code Style
 

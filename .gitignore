@@ -42,3 +42,13 @@ htmlcov/
 # Misc
 .env
 *.bak
+
+# Frontend — Node.js / Expo / React Native
+frontend/**/node_modules/
+frontend/**/.expo/
+frontend/**/ios/Pods/
+frontend/**/ios/build/
+frontend/**/android/build/
+frontend/**/android/.gradle/
+frontend/**/.expo-shared/
+frontend/**/dist/
