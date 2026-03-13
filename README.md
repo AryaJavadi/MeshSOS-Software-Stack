@@ -1,13 +1,16 @@
-# MeshSOS Backend
+# MeshSOS Software Stack
 
-Infrastructure-independent emergency communication system backend for the MeshSOS project.
+Infrastructure-independent emergency communication system for the MeshSOS project.
 
 ## Overview
 
-This backend implements:
-- **Gateway Bridge**: Ingests LoRa packets from serial port, validates, and persists to database
-- **REST API**: Exposes messages, nodes, and routing endpoints for dashboard and mobile app
-- **Routing Engine**: Generates multiple route plans for supply distribution (distance-focused, priority-focused, blended)
+| Component | What it is | How to run |
+|---|---|---|
+| **Backend API** | FastAPI REST server | `python -m api.main` |
+| **Gateway Bridge** | Ingests LoRa packets from serial/USB | `python -m bridge.main <port>` |
+| **Routing Engine** | Supply route planning | Called by the API |
+| **Civilian App** | Expo React Native iOS app | `cd frontend/civilian-app && npm run ios` |
+| **Responder Dashboard** | Vite + React web app | `cd frontend/responder-dashboard && npm run dev` |
 
 ## Architecture
 
@@ -68,6 +71,49 @@ curl http://localhost:8000/messages
 curl http://localhost:8000/messages/urgent
 curl http://localhost:8000/nodes
 ```
+
+## Frontend Quick Start
+
+### Civilian App (iOS — Expo React Native)
+
+Requires macOS + Xcode. No LoRa hardware needed in mock mode.
+
+```bash
+cd frontend/civilian-app
+npm install
+npx pod-install       # first time only — installs iOS native dependencies
+npm run ios           # launches in iOS Simulator with mock data
+```
+
+**With real LoRa hardware** (physical device + BLE node required):
+```bash
+EXPO_PUBLIC_MOCK_MODE=false npm run ios
+```
+
+> See [frontend/civilian-app/README.md](frontend/civilian-app/README.md) for prerequisites, device setup, and build instructions.
+
+---
+
+### Responder Dashboard (Web — Vite + React)
+
+No special setup. Runs in any browser.
+
+```bash
+cd frontend/responder-dashboard
+npm install
+npm run dev           # → http://localhost:5173 (mock data on by default)
+```
+
+**With real backend data** (backend API must be running):
+```bash
+# Terminal 1 — start the backend
+python -m api.main
+
+# Terminal 2 — start the dashboard pointed at the real API
+VITE_USE_MOCK_DATA=false npm run dev
+```
+
+---
 
 ## Components
 
@@ -262,24 +308,19 @@ MeshSOS-Software-Stack/
 │   │   ├── store/               # Zustand state stores
 │   │   ├── config.ts            # MOCK_MODE flag
 │   │   └── README.md
-│   └── (responder-dashboard/)   # Vite + React web dashboard — coming soon
+│   └── responder-dashboard/     # Vite + React web dashboard (responder-facing)
+│       ├── src/
+│       │   ├── components/      # MapView, RequestsFeed, RightPanel, etc.
+│       │   ├── context/         # DashboardContext + reducer
+│       │   ├── hooks/           # useGatewaySocket (WebSocket)
+│       │   ├── mocks/           # gatewayMock — mock data for dev
+│       │   ├── types/
+│       │   └── utils/
+│       ├── .env.development     # VITE_GATEWAY_WS_URL, VITE_USE_MOCK_DATA
+│       └── package.json
 ├── requirements.txt
 └── README.md
 ```
-
-### Running the civilian app
-
-```bash
-cd frontend/civilian-app
-npm install
-npx pod-install          # iOS native dependencies
-npm run ios              # Launch in iOS Simulator (mock mode)
-
-# Real LoRa hardware
-EXPO_PUBLIC_MOCK_MODE=false npm run ios
-```
-
-See [frontend/civilian-app/README.md](frontend/civilian-app/README.md) for full setup details.
 
 ### Code Style
 

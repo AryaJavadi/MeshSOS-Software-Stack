@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install -D typescript@5.9.3 @vitejs/plugin-react@4.7.0 @types/react@18.3.28 @types/react-dom@18.3.7 @types/leaflet@1.9.21 @types/leaflet.markercluster@1.5.6 tailwindcss@3.4.19 postcss@8.5.8 autoprefixer@10.4.27)"
+    ]
+  }
+}
