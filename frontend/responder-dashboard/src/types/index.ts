@@ -40,6 +40,8 @@ export interface Vehicle {
   cargo: { type: SupplyType; quantity: number }[]
   assignedRequestIds: string[]
   location: { lat: number; lng: number }
+  hoursWorked: number
+  dispatchedAt?: number
 }
 
 export interface BroadcastMessage {

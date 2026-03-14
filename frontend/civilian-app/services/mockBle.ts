@@ -13,6 +13,7 @@ import { useMessageStore } from '@/store/messageStore';
 import { NetworkStatus, NodeInfo, SupplyRequest } from '@/types';
 import { RSSI_POLL_INTERVAL_MS } from '@/constants/ble';
 import { IBLEService } from './bleInterface';
+import { API_URL } from '@/config';
 
 // ─── Mock data ────────────────────────────────────────────────────────────────
 
@@ -94,6 +95,22 @@ export class MockBLEService implements IBLEService {
   async sendRequest(request: SupplyRequest): Promise<boolean> {
     // Simulate transmission delay, then deliver ACKs at realistic intervals
     await new Promise((r) => setTimeout(r, 1000));
+
+    // Forward to local backend so the request appears on the responder dashboard.
+    // Non-fatal: if the backend is not running the civilian app still works fine.
+    const connectedNode = useBLEStore.getState().connectedNode;
+    try {
+      await fetch(`${API_URL}/supply-requests`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...request,
+          connectedNodeId: connectedNode?.nodeId ?? 'MOCK',
+        }),
+      });
+    } catch {
+      // Backend not running — mock ACKs still fire normally
+    }
 
     const t1 = setTimeout(() => {
       useRequestStore.getState().applyAck({

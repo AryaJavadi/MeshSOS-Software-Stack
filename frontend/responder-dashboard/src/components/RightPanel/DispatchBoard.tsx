@@ -19,6 +19,12 @@ const SUPPLY_EMOJIS: Record<string, string> = {
   water: '💧', food: '🍎', medical: '🧰', other: '✏️',
 }
 
+function formatHours(h: number): string {
+  if (h < 0.017) return '0m' // < 1 min
+  if (h < 1) return `${Math.round(h * 60)}m`
+  return `${h.toFixed(1)}h`
+}
+
 function distKm(
   aLat: number, aLng: number,
   bLat: number, bLng: number,
@@ -63,7 +69,7 @@ export default function DispatchBoard() {
   }
 
   function dispatchVehicle(vehicle: Vehicle) {
-    dispatch({ type: 'VEHICLE_UPDATED', payload: { ...vehicle, status: 'enroute' } })
+    dispatch({ type: 'VEHICLE_UPDATED', payload: { ...vehicle, status: 'enroute', dispatchedAt: Date.now() } })
   }
 
   function recallVehicle(vehicle: Vehicle) {
@@ -82,7 +88,7 @@ export default function DispatchBoard() {
         <div className="text-text-muted text-[11px] text-center py-6">No vehicles available</div>
       )}
 
-      {state.vehicles.map(vehicle => {
+      {[...state.vehicles].sort((a, b) => a.hoursWorked - b.hoursWorked).map(vehicle => {
         const vstyle = VEHICLE_STATUS_STYLES[vehicle.status]
         const isSelected = selectedVehicleId === vehicle.id
         const canLoad = vehicle.status === 'available' || vehicle.status === 'loading'
@@ -115,6 +121,13 @@ export default function DispatchBoard() {
               >
                 {vehicle.status === 'enroute' ? 'En Route' : vehicle.status.charAt(0).toUpperCase() + vehicle.status.slice(1)}
               </span>
+              <span
+                className="text-[9px] font-semibold tabular-nums"
+                style={{ color: vehicle.hoursWorked >= 8 ? 'var(--color-red)' : vehicle.hoursWorked >= 4 ? 'var(--color-yellow)' : 'var(--color-text-muted)' }}
+                title="Hours worked this shift"
+              >
+                {formatHours(vehicle.hoursWorked)}
+              </span>
             </div>
 
             {/* Auto-computed cargo summary */}
@@ -139,7 +152,7 @@ export default function DispatchBoard() {
                     <div key={reqId} className="flex items-center gap-2 px-2 py-1.5 bg-surface2 rounded-[8px]">
                       <div className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: statusColor }} />
                       <button
-                        onClick={e => { e.stopPropagation(); dispatch({ type: 'REQUEST_SELECTED', payload: reqId }) }}
+                        onClick={e => { e.stopPropagation(); dispatch({ type: 'REQUEST_EXPANDED', payload: reqId }) }}
                         className="font-mono text-[9.5px] text-accent flex-1 text-left hover:opacity-70 transition-opacity"
                       >
                         {reqId}

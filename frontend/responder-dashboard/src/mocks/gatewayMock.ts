@@ -1,7 +1,8 @@
 import { Dispatch } from 'react'
 import { AppAction, HouseholdRequest, MeshNode, Vehicle } from '../types'
 
-const C = { lat: 43.4723, lng: -80.5449 }
+// Supply station: Waterloo Fire Station 1, 216 Weber St N
+const C = { lat: 43.4773, lng: -80.5180 }
 
 function minsAgo(n: number): string {
   return new Date(Date.now() - n * 60_000).toISOString()
@@ -18,13 +19,14 @@ const SEED_NODES: MeshNode[] = [
   { id: 'N-W2',  status: 'offline', location: { lat: C.lat - 0.008,  lng: C.lng - 0.045 }, lastSeen: new Date(Date.now() - 45 * 60_000).toISOString(), signalDbm: -99, hopsToGateway: 3 },
 ]
 
-// ── 5 supply vehicles — each near their request cluster ──
+// ── 5 supply vehicles — all based at the supply station (gateway) ──
+export const SUPPLY_STATION = C
 export const SEED_VEHICLES: Vehicle[] = [
-  { id: 'V-01', name: 'Supply 01', status: 'available', cargo: [], assignedRequestIds: [], location: { lat: C.lat + 0.034, lng: C.lng + 0.042 } }, // NE
-  { id: 'V-02', name: 'Supply 02', status: 'available', cargo: [], assignedRequestIds: [], location: { lat: C.lat + 0.042, lng: C.lng + 0.010 } }, // N
-  { id: 'V-03', name: 'Supply 03', status: 'available', cargo: [], assignedRequestIds: [], location: { lat: C.lat - 0.028, lng: C.lng + 0.030 } }, // SE
-  { id: 'V-04', name: 'Supply 04', status: 'available', cargo: [], assignedRequestIds: [], location: { lat: C.lat - 0.022, lng: C.lng - 0.035 } }, // SW
-  { id: 'V-05', name: 'Supply 05', status: 'available', cargo: [], assignedRequestIds: [], location: { lat: C.lat + 0.008, lng: C.lng - 0.042 } }, // W
+  { id: 'V-01', name: 'Supply 01', status: 'available', cargo: [], assignedRequestIds: [], location: C, hoursWorked: 0 },
+  { id: 'V-02', name: 'Supply 02', status: 'available', cargo: [], assignedRequestIds: [], location: C, hoursWorked: 0 },
+  { id: 'V-03', name: 'Supply 03', status: 'available', cargo: [], assignedRequestIds: [], location: C, hoursWorked: 0 },
+  { id: 'V-04', name: 'Supply 04', status: 'available', cargo: [], assignedRequestIds: [], location: C, hoursWorked: 0 },
+  { id: 'V-05', name: 'Supply 05', status: 'available', cargo: [], assignedRequestIds: [], location: C, hoursWorked: 0 },
 ]
 
 // ── 30 requests — 6 per cluster, each near its respective vehicle ──

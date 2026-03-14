@@ -64,6 +64,7 @@ export default function VehicleMarker({ vehicle }: Props) {
           <div>Status: <span style={{ textTransform: 'capitalize', color: statusColor }}>{vehicle.status}</span></div>
           <div>Cargo: {vehicle.cargo.length > 0 ? vehicle.cargo.map(c => `${c.type} ×${c.quantity}`).join(', ') : 'Empty'}</div>
           <div>Assignments: {vehicle.assignedRequestIds.length}</div>
+          <div>Hours worked: {vehicle.hoursWorked < 1 ? `${Math.round(vehicle.hoursWorked * 60)}m` : `${vehicle.hoursWorked.toFixed(1)}h`}</div>
         </div>
       </Popup>
     </Marker>

@@ -1,14 +1,16 @@
 """
 MeshSOS Backend REST API
-Exposes messages, nodes, and routing endpoints for dashboard and mobile app
+Exposes messages, nodes, routing, and supply-request endpoints for dashboard and mobile app.
+Also runs a WebSocket server at /ws so the responder dashboard receives live updates.
 """
 
 import logging
 import sys
+from datetime import datetime, timezone
 from pathlib import Path
-from typing import Optional
+from typing import Any, Optional
 
-from fastapi import FastAPI, HTTPException, Query
+from fastapi import FastAPI, HTTPException, Query, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
@@ -57,6 +59,57 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+# ── WebSocket connection manager ──────────────────────────────────────────────
+
+class ConnectionManager:
+    """Tracks all live dashboard WebSocket connections and broadcasts to them."""
+
+    def __init__(self):
+        self._clients: list[WebSocket] = []
+
+    async def connect(self, ws: WebSocket):
+        await ws.accept()
+        self._clients.append(ws)
+        logger.info(f"Dashboard connected ({len(self._clients)} total)")
+
+    def disconnect(self, ws: WebSocket):
+        self._clients.remove(ws)
+        logger.info(f"Dashboard disconnected ({len(self._clients)} remaining)")
+
+    async def broadcast(self, message: dict):
+        """Send a JSON message to every connected dashboard client."""
+        dead: list[WebSocket] = []
+        for ws in self._clients:
+            try:
+                await ws.send_json(message)
+            except Exception:
+                dead.append(ws)
+        for ws in dead:
+            if ws in self._clients:
+                self._clients.remove(ws)
+
+
+manager = ConnectionManager()
+
+
+@app.websocket("/ws")
+async def websocket_endpoint(ws: WebSocket):
+    """
+    WebSocket endpoint for the responder dashboard.
+
+    The dashboard connects here to receive real-time events:
+      REQUEST_RECEIVED   — new supply request arrived from civilian app
+      NODE_STATUS_UPDATED — mesh node status change (future)
+    """
+    await manager.connect(ws)
+    try:
+        while True:
+            # keep the connection alive; dashboard only listens, doesn't send
+            await ws.receive_text()
+    except WebSocketDisconnect:
+        manager.disconnect(ws)
 
 
 @app.get("/")
@@ -280,8 +333,122 @@ def list_routes(
         raise HTTPException(status_code=500, detail=str(e))
 
 
+# ── Supply request intake (from civilian app) ─────────────────────────────────
+
+def _translate_supply_request(body: dict) -> dict:
+    """
+    Translate a SupplyRequest (civilian app shape) into a HouseholdRequest
+    (responder dashboard shape).
+
+    Civilian app field  →  Dashboard field
+    ─────────────────────────────────────────
+    supplyTypes         →  supplies
+    people.adults       →  people.infant      (age 0–2)
+    people.children     →  people.childAdult  (age 3–59)
+    people.elderly      →  people.senior      (age 60+)
+    additionalInfo      →  notes
+    medicalDetails.*    →  medicalProfiles[]
+    latitude/longitude  →  location.lat/lng
+    """
+    people = body.get("people", {})
+    medical_details = body.get("medicalDetails") or {}
+
+    # Build medicalProfiles array from the per-age-tier medical details
+    age_tier_map = {
+        "adults":   "infant",
+        "children": "child_adult",
+        "elderly":  "senior",
+    }
+    condition_map = {
+        "mental": "mental_health",  # civilian uses 'mental'; dashboard uses 'mental_health'
+    }
+
+    medical_profiles = []
+    for civilian_key, dashboard_tier in age_tier_map.items():
+        detail = medical_details.get(civilian_key)
+        if not detail:
+            continue
+        condition = detail.get("conditionType") or "other"
+        condition = condition_map.get(condition, condition)
+        specific_need = (detail.get("specificNeed") or "").strip()
+        if not specific_need:
+            continue
+        count = people.get(civilian_key, 0)
+        medical_profiles.append({
+            "ageTier":       dashboard_tier,
+            "count":         count,
+            "conditionType": condition,
+            "specificNeed":  specific_need,
+        })
+
+    # Supply type normalisation: 'shelter' and 'supplies' don't exist in the
+    # dashboard schema — fall back to 'other'.
+    dashboard_supply_types = {"water", "food", "medical", "other"}
+    supplies = [
+        s if s in dashboard_supply_types else "other"
+        for s in (body.get("supplyTypes") or [])
+    ]
+
+    return {
+        "id":             body["id"],
+        "householdId":    body["id"],
+        "status":         "new",
+        "supplies":       supplies,
+        "people": {
+            "infant":     people.get("adults", 0),
+            "childAdult": people.get("children", 0),
+            "senior":     people.get("elderly", 0),
+        },
+        "location": {
+            "lat": body["latitude"]  if body.get("latitude")  is not None else 43.4723,
+            "lng": body["longitude"] if body.get("longitude") is not None else -80.5449,
+        },
+        "nodeId":         body.get("connectedNodeId", "MOCK"),
+        "notes":          body.get("additionalInfo", ""),
+        "medicalProfiles": medical_profiles,
+        "triageScore":    0,
+        "receivedAt":     datetime.now(timezone.utc).isoformat(),
+    }
+
+
+@app.post("/supply-requests", status_code=202)
+async def receive_supply_request(body: dict):
+    """
+    Intake endpoint for civilian-app supply requests.
+
+    The civilian app posts here after a user submits a supply request form.
+    Translates the payload into the HouseholdRequest shape and broadcasts
+    REQUEST_RECEIVED to all connected dashboard clients.
+
+    The dashboard always seeds its own mock infrastructure (nodes, vehicles,
+    30 background requests) on startup via startMockGateway, so the backend
+    only needs to deliver the new request itself.
+
+    Returns 202 Accepted immediately.
+    """
+    try:
+        household_request = _translate_supply_request(body)
+        lat = household_request["location"]["lat"]
+        lng = household_request["location"]["lng"]
+
+        await manager.broadcast({
+            "type":    "REQUEST_RECEIVED",
+            "payload": household_request,
+        })
+        logger.info(
+            f"Supply request {household_request['id']} received at "
+            f"({lat:.4f}, {lng:.4f}) — broadcast to {len(manager._clients)} client(s)"
+        )
+        return {"ok": True, "id": household_request["id"]}
+    except KeyError as e:
+        raise HTTPException(status_code=422, detail=f"Missing required field: {e}")
+    except Exception as e:
+        logger.error(f"Error processing supply request: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 if __name__ == "__main__":
     import uvicorn
-    
+
     logger.info("Starting MeshSOS Backend API")
     uvicorn.run(app, host="0.0.0.0", port=8000)
