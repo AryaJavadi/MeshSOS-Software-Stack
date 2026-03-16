@@ -98,35 +98,34 @@ Then: fill out a supply request → tap Submit → watch it appear on the dashbo
 
 ### Mode 3 — Real hardware (full LoRa stack)
 
-Physical ESP32 LoRa nodes + gateway device + Raspberry Pi.
+Physical ESP32 LoRa nodes + gateway device (Meshtastic/Heltec Wireless Tracker).
 
 ```
-ESP32 Node → LoRa → Gateway → USB/UART → Raspberry Pi
-                                              │
-                                      Gateway Bridge (Python)
-                                              │
-                                        SQLite Database
-                                              │
-                                      Backend API (FastAPI)
-                                              │
-                                 Dashboard / Mobile App (HTTP/WebSocket)
+ESP32 Node → LoRa → Gateway (USB) → Meshtastic Bridge → SQLite + API broadcast
+                                                              │
+                                                    Dashboard (WebSocket)
 ```
 
 ```bash
-# Terminal 1 — backend API
+# Terminal 1 — backend API (must run first so bridge can POST to it)
 python -m api.main
 
-# Terminal 2 — gateway bridge (replace /dev/ttyACM0 with your serial port)
-python -m bridge.main /dev/ttyACM0
+# Terminal 2 — Meshtastic gateway bridge (from backend/, replace port with your device)
+cd backend
+python -m bridge.meshtastic_bridge /dev/ttyACM0
+# macOS: python -m bridge.meshtastic_bridge /dev/cu.usbmodem*
+# List devices: python -m bridge.meshtastic_bridge --list-devices
 
 # Terminal 3 — responder dashboard
 cd frontend/responder-dashboard
 VITE_USE_MOCK_DATA=false npm run dev
 
-# Civilian app — disable mock BLE so it uses real Bluetooth
+# Civilian app — disable mock BLE to use real Bluetooth (physical device required)
 cd frontend/civilian-app
-EXPO_PUBLIC_MOCK_MODE=false npm run ios   # physical device required
+EXPO_PUBLIC_MOCK_MODE=false npm run ios
 ```
+
+When the bridge receives a LoRa message, it stores it in the database and POSTs to the API. The API broadcasts to the dashboard, so new requests appear in real time. Set `MESHSOS_API_URL` (default `http://localhost:8000`) if the API runs elsewhere.
 
 ---
 

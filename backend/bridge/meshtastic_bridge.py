@@ -19,9 +19,11 @@ from __future__ import annotations
 import argparse
 import json
 import logging
+import os
 import sys
 import threading
 import time
+import urllib.request
 from pathlib import Path
 from typing import Any, Optional
 
@@ -36,6 +38,43 @@ from models import MeshMessageModel, MessageType
 logger = logging.getLogger("meshtastic_bridge")
 
 DB_LOCK = threading.Lock()
+
+# API URL for broadcasting hardware messages to the dashboard (Mode 3)
+MESHSOS_API_URL = os.environ.get("MESHSOS_API_URL", "http://localhost:8000")
+
+
+def _notify_api_of_message(msg: MeshMessageModel, msg_id: int) -> None:
+    """POST message to API so dashboard receives REQUEST_RECEIVED via WebSocket."""
+    url = f"{MESHSOS_API_URL.rstrip('/')}/internal/hardware-message"
+    payload = {
+        "id": msg_id,
+        "node_id": msg.node_id,
+        "timestamp": msg.timestamp,
+        "message_type": msg.message_type.value,
+        "urgency": msg.urgency,
+        "lat": msg.lat,
+        "lon": msg.lon,
+        "resource_type": msg.resource_type,
+        "quantity": msg.quantity,
+        "payload": msg.payload,
+    }
+    try:
+        data = json.dumps(payload).encode("utf-8")
+        req = urllib.request.Request(
+            url,
+            data=data,
+            headers={"Content-Type": "application/json"},
+            method="POST",
+        )
+        with urllib.request.urlopen(req, timeout=5) as resp:
+            if 200 <= resp.status < 300:
+                logger.debug(f"Notified API of message {msg_id}")
+            else:
+                logger.warning(f"API returned {resp.status} for message {msg_id}")
+    except urllib.error.URLError as e:
+        logger.debug(f"Could not notify API (not running?): {e}")
+    except Exception as e:
+        logger.warning(f"Failed to notify API: {e}")
 
 
 def _safe_truncate_utf8(s: str, max_bytes: int) -> str:
@@ -198,9 +237,12 @@ def run_meshtastic_bridge(
 
             # Store in database
             with DB_LOCK:
-                insert_message(conn, msg)
+                msg_id = insert_message(conn, msg)
             stats["stored"] += 1
-            
+
+            # Notify API so dashboard receives live updates (Mode 3)
+            _notify_api_of_message(msg, msg_id)
+
             logger.info(
                 f"✓ {msg.node_id} | {msg.message_type.value} | urgency={msg.urgency} "
                 f"| stats: rx={stats['rx']} stored={stats['stored']} ignored={stats['ignored']} err={stats['errors']}"

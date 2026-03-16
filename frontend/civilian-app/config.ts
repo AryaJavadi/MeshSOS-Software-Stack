@@ -29,4 +29,4 @@ export const MOCK_MODE = process.env.EXPO_PUBLIC_MOCK_MODE !== 'false';
  *   npm run ios                                              ← simulator (uses localhost)
  */
 export const API_URL =
-  process.env.EXPO_PUBLIC_API_URL ?? 'http://192.168.35.46:8000';
+  process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:8000';

@@ -447,6 +447,108 @@ async def receive_supply_request(body: dict):
         raise HTTPException(status_code=500, detail=str(e))
 
 
+# ── Hardware message broadcast (from gateway bridge) ─────────────────────────────
+
+def _message_to_household_request(msg: dict) -> dict:
+    """
+    Convert a MeshMessage (from LoRa/bridge) into HouseholdRequest shape
+    for the responder dashboard.
+
+    Handles both:
+    - Full SupplyRequest JSON in payload (from civilian app via BLE→LoRa)
+    - Minimal message fields (from raw LoRa packets)
+    """
+    payload = (msg.get("payload") or "").strip()
+
+    # If payload looks like a full SupplyRequest, try to translate it
+    if payload.startswith("{") and "supplyTypes" in payload:
+        try:
+            import json
+            body = json.loads(payload)
+            body["connectedNodeId"] = msg.get("node_id", "unknown")
+            if msg.get("latitude") is not None:
+                body["latitude"] = msg["latitude"]
+            if msg.get("longitude") is not None:
+                body["longitude"] = msg["longitude"]
+            return _translate_supply_request(body)
+        except (json.JSONDecodeError, KeyError):
+            pass
+
+    # Build minimal HouseholdRequest from message fields
+    node_id = msg.get("node_id", "unknown")
+    ts = msg.get("timestamp") or int(datetime.now(timezone.utc).timestamp())
+    msg_id = msg.get("id") or f"hw-{node_id}-{ts}"
+
+    lat = msg.get("lat") or msg.get("latitude")
+    lon = msg.get("lon") or msg.get("longitude")
+    if lat is None:
+        lat = 43.4723
+    if lon is None:
+        lon = -80.5449
+
+    resource = msg.get("resource_type") or "other"
+    supplies = [resource] if resource in ("water", "food", "medical", "other") else ["other"]
+
+    return {
+        "id": str(msg_id),
+        "householdId": str(msg_id),
+        "status": "new",
+        "supplies": supplies,
+        "people": {"infant": 0, "childAdult": 0, "senior": 0},
+        "location": {"lat": lat, "lng": lon},
+        "nodeId": node_id,
+        "notes": payload or f"LoRa message (urgency {msg.get('urgency', 1)})",
+        "medicalProfiles": [],
+        "triageScore": 0,
+        "receivedAt": datetime.fromtimestamp(ts, tz=timezone.utc).isoformat(),
+    }
+
+
+class HardwareMessageRequest(BaseModel):
+    """Request body for /internal/hardware-message (from gateway bridge)."""
+    id: Optional[int] = None
+    node_id: str
+    timestamp: int
+    message_type: str
+    urgency: int
+    lat: Optional[float] = None
+    lon: Optional[float] = None
+    resource_type: Optional[str] = None
+    quantity: Optional[int] = None
+    payload: Optional[str] = None
+
+
+@app.post("/internal/hardware-message", status_code=202)
+async def receive_hardware_message(body: HardwareMessageRequest):
+    """
+    Called by the gateway bridge when a new message arrives from LoRa hardware.
+
+    Converts the message to HouseholdRequest format and broadcasts
+    REQUEST_RECEIVED to all connected dashboard clients.
+
+    This enables Mode 3: civilian app → BLE → LoRa node → gateway bridge
+    → this API → dashboard WebSocket.
+    """
+    try:
+        msg = body.model_dump()
+        msg["latitude"] = msg.get("lat")
+        msg["longitude"] = msg.get("lon")
+        household_request = _message_to_household_request(msg)
+
+        await manager.broadcast({
+            "type": "REQUEST_RECEIVED",
+            "payload": household_request,
+        })
+        logger.info(
+            f"Hardware message from {body.node_id} broadcast to dashboard "
+            f"({len(manager._clients)} client(s))"
+        )
+        return {"ok": True, "id": household_request["id"]}
+    except Exception as e:
+        logger.error(f"Error processing hardware message: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 if __name__ == "__main__":
     import uvicorn
 
