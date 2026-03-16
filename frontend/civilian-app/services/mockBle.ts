@@ -69,8 +69,8 @@ export class MockBLEService implements IBLEService {
     await new Promise((r) => setTimeout(r, 2000));
 
     // Use real GPS if available so mock nodes appear near the user's actual location
-    let baseLat = 37.7749;
-    let baseLon = -122.4194;
+    let baseLat = 43.4723;
+    let baseLon = -80.5449;
     try {
       const perm = await Location.requestForegroundPermissionsAsync();
       if (perm.status === 'granted') {
@@ -165,24 +165,13 @@ export class MockBLEService implements IBLEService {
     const { addMessage, setLastSynced, markAllRead } = useMessageStore.getState();
 
     // Seed historical messages immediately so the activity feed is pre-populated
-    addMessage({ id: `mock-hist-${session}-a`, timestamp: session - 13 * 60 * 1000, fromNodeId: 'GW-01', content: 'Request received. Emergency teams are being coordinated for your area.', type: 'info' });
-    addMessage({ id: `mock-hist-${session}-b`, timestamp: session - 9 * 60 * 1000,  fromNodeId: 'GW-01', content: 'Supply drop (water + food rations) is en route to your location. ETA: ~25 minutes.', type: 'action' });
-    addMessage({ id: `mock-hist-${session}-c`, timestamp: session - 3 * 60 * 1000,  fromNodeId: 'GW-01', content: 'URGENT: Please move to Oak Street Community Center. Medical assistance and additional supplies are available there.', type: 'urgent' });
+    addMessage({ id: `mock-hist-${session}-a`, timestamp: session - 13 * 60 * 1000, fromNodeId: 'GW-01', content: 'A supply distribution point has been set up at Waterloo Park. Open 8AM–6PM daily.', type: 'info' });
+    addMessage({ id: `mock-hist-${session}-b`, timestamp: session - 9 * 60 * 1000,  fromNodeId: 'GW-01', content: 'A supply vehicle is en route to the Student Life Centre, 200 University Ave W, Waterloo, ON N2L 0A4. ETA: 20 minutes.', type: 'action' });
+    addMessage({ id: `mock-hist-${session}-c`, timestamp: session - 3 * 60 * 1000,  fromNodeId: 'GW-01', content: 'URGENT: Do not drink tap water. Contamination reported. Bottled water being distributed at Erb St shelter.', type: 'urgent' });
     markAllRead();
     setLastSynced('B91C', session - 60 * 1000);
 
-    // Schedule new messages that arrive during the session (these come in unread)
-    const t1 = setTimeout(() => {
-      addMessage({ id: `mock-msg-${session}-1`, timestamp: Date.now(), fromNodeId: 'GW-01', content: 'Update: A second supply team has been dispatched. Estimated arrival in 10 minutes.', type: 'action' });
-      setLastSynced('B91C', Date.now());
-    }, 20000);
-
-    const t2 = setTimeout(() => {
-      addMessage({ id: `mock-msg-${session}-2`, timestamp: Date.now(), fromNodeId: 'GW-01', content: 'All clear in your sector. Please confirm you have received supplies.', type: 'info' });
-      setLastSynced('B91C', Date.now());
-    }, 40000);
-
-    this.messageTimers.push(t1, t2);
+    this.messageTimers.push();
   }
 
   private clearTimers() {

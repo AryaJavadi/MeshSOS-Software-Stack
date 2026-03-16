@@ -19,7 +19,8 @@ import { useTheme } from '@/hooks/useTheme';
 import { ThemeColors } from '@/constants/themes';
 
 function generateId(): string {
-  return `req-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+  const hex = Math.random().toString(16).slice(2, 6).toUpperCase();
+  return `HH:${hex}`;
 }
 
 function makeStyles(colors: ThemeColors) {

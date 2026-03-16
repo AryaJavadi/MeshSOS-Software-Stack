@@ -35,8 +35,6 @@ export default function BroadcastPanel() {
     if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) send()
   }
 
-  const unreadCount = state.broadcastHistory.filter(m => !m.acknowledged).length
-
   return (
     <div className="p-4 flex flex-col gap-4">
       {/* Type selector */}
@@ -89,14 +87,6 @@ export default function BroadcastPanel() {
         <div>
           <div className="flex items-center gap-2 mb-2">
             <div className="text-[11px] font-bold uppercase tracking-[1.2px] text-text-muted">Sent</div>
-            {unreadCount > 0 && (
-              <span
-                className="px-1.5 py-[1px] rounded-full text-[9px] font-bold border"
-                style={{ background: 'var(--color-yellow-dim)', borderColor: 'var(--color-yellow-border)', color: 'var(--color-yellow)' }}
-              >
-                {unreadCount} unread
-              </span>
-            )}
           </div>
           <div className="flex flex-col gap-2">
             {state.broadcastHistory.map(msg => {
@@ -106,38 +96,19 @@ export default function BroadcastPanel() {
                   key={msg.id}
                   className="rounded-[10px] px-3 py-2.5 border"
                   style={{
-                    background: msg.acknowledged ? 'var(--color-surface)' : cfg.dimVar,
-                    borderColor: msg.acknowledged ? 'var(--color-border)' : cfg.borderVar,
+                    background: cfg.dimVar,
+                    borderColor: cfg.borderVar,
                   }}
                 >
                   <div className="flex items-center gap-1.5 mb-1">
-                    <span className="text-[10px] font-bold uppercase tracking-wide" style={{ color: msg.acknowledged ? 'var(--color-text-muted)' : cfg.colorVar }}>
+                    <span className="text-[10px] font-bold uppercase tracking-wide" style={{ color: cfg.colorVar }}>
                       {cfg.emoji} {cfg.label}
                     </span>
-                    {!msg.acknowledged ? (
-                      <span
-                        className="text-[8.5px] font-bold uppercase tracking-wide px-1.5 py-[1px] rounded-full border"
-                        style={{ background: 'var(--color-yellow-dim)', borderColor: 'var(--color-yellow-border)', color: 'var(--color-yellow)' }}
-                      >
-                        Unread
-                      </span>
-                    ) : (
-                      <span className="text-[8.5px] text-text-muted">Acknowledged</span>
-                    )}
                     <span className="text-[10px] text-text-muted ml-auto">{relativeTime(msg.sentAt)}</span>
                   </div>
-                  <div className={`text-[12px] leading-relaxed mb-2 ${msg.acknowledged ? 'text-text-muted' : 'text-text-dim'}`}>
+                  <div className="text-[12px] leading-relaxed text-text-dim">
                     {msg.text}
                   </div>
-                  {!msg.acknowledged && (
-                    <button
-                      onClick={() => dispatch({ type: 'BROADCAST_ACKNOWLEDGED', payload: msg.id })}
-                      className="text-[10px] font-semibold border rounded-[6px] px-2.5 py-1 transition-opacity hover:opacity-70"
-                      style={{ background: 'var(--color-green-dim)', borderColor: 'var(--color-green-border)', color: 'var(--color-green)' }}
-                    >
-                      ✓ Mark Acknowledged
-                    </button>
-                  )}
                 </div>
               )
             })}
