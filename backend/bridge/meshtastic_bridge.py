@@ -402,9 +402,15 @@ Examples:
         action="store_true",
         help="List available serial devices and exit"
     )
-    
+    parser.add_argument(
+        "--db",
+        type=Path,
+        default=None,
+        help="Path to SQLite database file (default: auto-detected relative to script)"
+    )
+
     args = parser.parse_args()
-    
+
     if args.list_devices:
         devices = list_available_devices()
         if devices:
@@ -414,11 +420,11 @@ Examples:
         else:
             print("No serial devices found.")
         return
-    
+
     if not args.serial_port:
         parser.error("serial_port is required (use --list-devices to see available devices)")
-    
-    run_meshtastic_bridge(args.serial_port, baudrate=args.baudrate)
+
+    run_meshtastic_bridge(args.serial_port, baudrate=args.baudrate, db_path=args.db)
 
 
 if __name__ == "__main__":

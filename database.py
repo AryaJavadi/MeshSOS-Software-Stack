@@ -28,7 +28,7 @@ def init_db(db_path: Path = DEFAULT_DB_PATH) -> sqlite3.Connection:
     Returns:
         sqlite3.Connection: Database connection with row_factory set
     """
-    conn = sqlite3.connect(db_path)
+    conn = sqlite3.connect(db_path, check_same_thread=False)
     conn.row_factory = sqlite3.Row
     
     # Messages table
@@ -120,7 +120,7 @@ def get_db(db_path: Path = DEFAULT_DB_PATH) -> sqlite3.Connection:
     
     For use in API routes and services that need a fresh connection.
     """
-    conn = sqlite3.connect(db_path)
+    conn = sqlite3.connect(db_path, check_same_thread=False)
     conn.row_factory = sqlite3.Row
     return conn
 
