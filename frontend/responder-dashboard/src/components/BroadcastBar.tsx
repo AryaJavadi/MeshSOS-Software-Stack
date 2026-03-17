@@ -18,19 +18,27 @@ const TYPE_STYLES: Record<BroadcastType, { active: string; inactive: string }> =
 }
 
 const CIVILIAN_COUNT = 9
+const API_URL = (import.meta as { env: Record<string, string> }).env.VITE_API_URL ?? 'http://localhost:8000'
 
 export default function BroadcastBar() {
   const { state, dispatch } = useDashboard()
 
-  function send() {
-    if (!state.broadcastDraft.trim()) return
+  async function send() {
+    const text = state.broadcastDraft.trim()
+    if (!text) return
+    const res = await fetch(`${API_URL}/broadcasts`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ type: state.broadcastType, text }),
+    })
+    const data = await res.json()
     dispatch({
       type: 'BROADCAST_SENT',
       payload: {
-        id: `msg-bar-${Date.now()}`,
+        id: data.id,
         type: state.broadcastType,
-        text: state.broadcastDraft.trim(),
-        sentAt: new Date().toISOString(),
+        text,
+        sentAt: data.sentAt,
         acknowledged: false,
       },
     })

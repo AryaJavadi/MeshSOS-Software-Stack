@@ -7,10 +7,12 @@ import * as SplashScreen from 'expo-splash-screen';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { bleService } from '@/services/ble';
 import { useTheme } from '@/hooks/useTheme';
+import { useBroadcastPolling } from '@/hooks/useBroadcastPolling';
 
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
+  useBroadcastPolling();
   const [fontsLoaded] = useFonts({
     'DM Sans': DMSans_400Regular,
     'DM Sans Medium': DMSans_500Medium,

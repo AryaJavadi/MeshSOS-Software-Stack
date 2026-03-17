@@ -8,7 +8,7 @@ const TYPE_CONFIG: Record<BroadcastType, { label: string; emoji: string; colorVa
   info:   { label: 'Info',   emoji: 'ℹ️',  colorVar: 'var(--color-blue)',   dimVar: 'var(--color-blue-dim)',   borderVar: 'var(--color-blue-border)' },
 }
 
-let msgCounter = 0
+const API_URL = (import.meta as { env: Record<string, string> }).env.VITE_API_URL ?? 'http://localhost:8000'
 
 export default function BroadcastPanel() {
   const { state, dispatch } = useDashboard()
@@ -16,16 +16,22 @@ export default function BroadcastPanel() {
   const type = state.broadcastType
   const config = TYPE_CONFIG[type]
 
-  function send() {
+  async function send() {
     const text = draft.trim()
     if (!text) return
+    const res = await fetch(`${API_URL}/broadcasts`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ type, text }),
+    })
+    const data = await res.json()
     dispatch({
       type: 'BROADCAST_SENT',
       payload: {
-        id: `msg-${++msgCounter}-${Date.now()}`,
+        id: data.id,
         type,
         text,
-        sentAt: new Date().toISOString(),
+        sentAt: data.sentAt,
         acknowledged: false,
       },
     })
