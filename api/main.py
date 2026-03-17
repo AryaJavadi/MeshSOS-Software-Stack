@@ -549,6 +549,43 @@ async def receive_hardware_message(body: HardwareMessageRequest):
         raise HTTPException(status_code=500, detail=str(e))
 
 
+# ── Responder → Civilian broadcasts ──────────────────────────────────────────
+
+_broadcasts: list[dict] = []
+
+
+class BroadcastBody(BaseModel):
+    type: str  # "urgent" | "action" | "info"
+    text: str
+
+
+@app.post("/broadcasts", status_code=201)
+async def send_broadcast(body: BroadcastBody):
+    """Responder dashboard sends a message to all civilians on the mesh."""
+    msg = {
+        "id": f"bc-{int(datetime.now(timezone.utc).timestamp() * 1000)}",
+        "type": body.type,
+        "text": body.text,
+        "sentAt": datetime.now(timezone.utc).isoformat(),
+    }
+    _broadcasts.append(msg)
+    logger.info(f"Broadcast sent: [{body.type}] {body.text}")
+    return msg
+
+
+@app.get("/broadcasts")
+def list_broadcasts(since: Optional[int] = Query(None, description="Unix ms timestamp — return only broadcasts after this")):
+    """Civilian app polls this to receive messages from responders."""
+    if since is None:
+        return _broadcasts[-50:]
+    cutoff = since / 1000
+    return [b for b in _broadcasts if _parse_ts(b["sentAt"]) > cutoff]
+
+
+def _parse_ts(iso: str) -> float:
+    return datetime.fromisoformat(iso).timestamp()
+
+
 if __name__ == "__main__":
     import uvicorn
 
