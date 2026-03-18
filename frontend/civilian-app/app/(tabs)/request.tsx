@@ -48,6 +48,13 @@ function makeStyles(colors: ThemeColors) {
       fontFamily: 'DM Sans',
       height: 80,
     },
+    charCount: {
+      fontSize: 10,
+      color: colors.textMuted,
+      fontFamily: 'DM Mono',
+      textAlign: 'right',
+      marginTop: 3,
+    },
     submitBtn: {
       marginHorizontal: spacing.lg,
       backgroundColor: colors.accent2,
@@ -284,13 +291,15 @@ export default function RequestScreen() {
                 <TextInput
                   style={styles.textarea}
                   value={additionalInfo}
-                  onChangeText={(v) => { setAdditionalInfo(v); autosaveDraft(); }}
+                  onChangeText={(v) => { setAdditionalInfo(v.slice(0, 60)); autosaveDraft(); }}
                   placeholder="Describe the supplies you need..."
                   placeholderTextColor={colors.textMuted}
                   multiline
                   numberOfLines={4}
                   textAlignVertical="top"
+                  maxLength={60}
                 />
+                <Text style={styles.charCount}>{additionalInfo.length}/60</Text>
               </View>
             )}
 

@@ -9,7 +9,7 @@ export default function StatBar() {
   const medicalFlags = state.requests.filter(r =>
     r.status !== 'delivered' && (r.supplies.includes('medical') || r.medicalProfiles.length > 0)
   ).length
-  const vehiclesDeployed = state.vehicles.filter(v => v.status === 'enroute' || v.status === 'loading').length
+  const vehiclesDeployed = state.vehicles.filter(v => v.status === 'enroute' || v.status === 'returning').length
   const vehiclesTotal = state.vehicles.length
   const nodesOnline = state.nodes.filter(n => n.status === 'online' || n.status === 'gateway').length
   const nodesTotal = state.nodes.length

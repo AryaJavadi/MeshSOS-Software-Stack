@@ -25,6 +25,7 @@ function PanToExpanded() {
 
   useEffect(() => {
     if (!state.expandedRequestId) return
+    if (state.selectedVehicleId) return  // never pan while dispatching a vehicle
     const req = state.requests.find(r => r.id === state.expandedRequestId)
     if (req) {
       map.flyTo([req.location.lat, req.location.lng], Math.max(map.getZoom(), 15), {

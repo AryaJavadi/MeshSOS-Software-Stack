@@ -21,7 +21,10 @@
         "NSBluetoothPeripheralUsageDescription": "MeshSOS uses Bluetooth to connect to your nearby LoRa node for emergency mesh communication.",
         "NSLocationWhenInUseUsageDescription": "MeshSOS captures your GPS location to include with supply requests so responders know where you are.",
         "NSLocationAlwaysUsageDescription": "MeshSOS captures your GPS location to include with supply requests so responders know where you are.",
-        "UIBackgroundModes": ["bluetooth-central", "location", "fetch", "remote-notification"]
+        "UIBackgroundModes": ["bluetooth-central", "location", "fetch", "remote-notification"],
+        "NSAppTransportSecurity": {
+          "NSAllowsArbitraryLoads": true
+        }
       }
     },
     "android": {

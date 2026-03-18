@@ -83,3 +83,4 @@ export type AppAction =
   | { type: 'SET_CONNECTION_STATUS'; payload: 'connected' | 'connecting' | 'disconnected' }
   | { type: 'REQUESTS_DELIVERED'; payload: string[] }
   | { type: 'CLEAR_RECENTLY_DELIVERED'; payload: string[] }
+  | { type: 'RESET_STATE' }

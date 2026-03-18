@@ -69,13 +69,17 @@ export default function BroadcastPanel() {
         <div className="text-[11px] font-bold uppercase tracking-[1.2px] text-text-muted mb-2">Message</div>
         <textarea
           value={draft}
-          onChange={e => dispatch({ type: 'BROADCAST_DRAFT_CHANGED', payload: e.target.value })}
+          onChange={e => dispatch({ type: 'BROADCAST_DRAFT_CHANGED', payload: e.target.value.slice(0, 100) })}
           onKeyDown={handleKey}
           placeholder="Type a message to send to civilians on the mesh network…"
           rows={4}
+          maxLength={100}
           className="w-full bg-surface border border-border rounded-[10px] px-3 py-2.5 text-[13px] text-text placeholder-text-muted resize-none focus:outline-none focus:border-accent transition-colors"
         />
-        <div className="text-[10px] text-text-muted mt-1">⌘↩ to send</div>
+        <div className="flex justify-between text-[10px] text-text-muted mt-1">
+          <span>⌘↩ to send</span>
+          <span>{draft.length}/100</span>
+        </div>
       </div>
 
       {/* Send button */}

@@ -11,6 +11,7 @@ interface RequestState {
   applyAck: (ack: RequestAck) => void;
   setDraft: (draft: Partial<SupplyRequest> | null) => void;
   clearDraft: () => void;
+  clearRequests: () => void;
 }
 
 export const useRequestStore = create<RequestState>((set) => ({
@@ -43,4 +44,5 @@ export const useRequestStore = create<RequestState>((set) => ({
 
   setDraft: (draft) => set({ draft }),
   clearDraft: () => set({ draft: null }),
+  clearRequests: () => set({ requests: [] }),
 }));

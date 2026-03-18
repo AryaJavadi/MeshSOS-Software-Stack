@@ -113,17 +113,19 @@ export async function flush(): Promise<void> {
   }
 }
 
+export async function clearAllRequests(): Promise<void> {
+  const database = await getDB();
+  await database.runAsync('DELETE FROM requests');
+}
+
 export async function initQueue(): Promise<void> {
-  // Load persisted requests into store on app start
-  const requests = await loadAllRequests();
-  const store = useRequestStore.getState();
-  for (const req of requests) {
-    store.addRequest(req);
-  }
+  // Wipe all persisted requests on every startup for a clean slate
+  const database = await getDB();
+  await database.runAsync('DELETE FROM requests');
 
   // Load draft
   const draft = await loadDraft();
   if (draft) {
-    store.setDraft(draft);
+    useRequestStore.getState().setDraft(draft);
   }
 }

@@ -152,7 +152,7 @@ export default function DispatchBoard() {
                     <div key={reqId} className="flex items-center gap-2 px-2 py-1.5 bg-surface2 rounded-[8px]">
                       <div className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: statusColor }} />
                       <button
-                        onClick={e => { e.stopPropagation(); dispatch({ type: 'REQUEST_EXPANDED', payload: reqId }) }}
+                        onClick={e => { e.stopPropagation(); dispatch({ type: 'REQUEST_SELECTED', payload: reqId }) }}
                         className="font-mono text-[9.5px] text-accent flex-1 text-left hover:opacity-70 transition-opacity"
                       >
                         {reqId}

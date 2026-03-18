@@ -103,6 +103,9 @@ export function reducer(state: AppState, action: AppAction): AppState {
         recentlyDeliveredIds: state.recentlyDeliveredIds.filter(id => !action.payload.includes(id)),
       }
 
+    case 'RESET_STATE':
+      return { ...initialState, theme: state.theme }
+
     default:
       return state
   }

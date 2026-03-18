@@ -3,8 +3,10 @@ import { AppAction } from '../types'
 
 const WS_URL = (import.meta as { env: Record<string, string> }).env.VITE_GATEWAY_WS_URL ?? 'ws://localhost:8765'
 const MAX_BACKOFF = 30_000
+const SESSION_KEY = 'meshsos-session'
+const STATE_KEY   = 'meshsos-state'
 
-export function useGatewaySocket(dispatch: Dispatch<AppAction>) {
+export function useGatewaySocket(dispatch: Dispatch<AppAction>, onReset?: () => void) {
   const wsRef = useRef<WebSocket | null>(null)
   const backoffRef = useRef(1000)
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -32,6 +34,17 @@ export function useGatewaySocket(dispatch: Dispatch<AppAction>) {
         try {
           const msg = JSON.parse(event.data as string)
           switch (msg.type) {
+            case 'SESSION_INIT': {
+              const stored = localStorage.getItem(SESSION_KEY)
+              if (stored && stored !== msg.sessionId) {
+                // New backend session — wipe persisted state and reset
+                localStorage.removeItem(STATE_KEY)
+                dispatch({ type: 'RESET_STATE' })
+                onReset?.()
+              }
+              localStorage.setItem(SESSION_KEY, msg.sessionId)
+              break
+            }
             case 'REQUEST_RECEIVED':
               dispatch({ type: 'REQUEST_RECEIVED', payload: msg.payload })
               break

@@ -6,6 +6,7 @@ Also runs a WebSocket server at /ws so the responder dashboard receives live upd
 
 import logging
 import sys
+import uuid
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Optional
@@ -40,6 +41,8 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # Create FastAPI app
+SERVER_SESSION_ID = str(uuid.uuid4())
+
 app = FastAPI(
     title="MeshSOS Backend API",
     description="Emergency communication and supply routing system",
@@ -104,6 +107,7 @@ async def websocket_endpoint(ws: WebSocket):
       NODE_STATUS_UPDATED — mesh node status change (future)
     """
     await manager.connect(ws)
+    await ws.send_json({"type": "SESSION_INIT", "sessionId": SERVER_SESSION_ID})
     try:
         while True:
             # keep the connection alive; dashboard only listens, doesn't send

@@ -1,4 +1,5 @@
 import * as Location from 'expo-location';
+import * as Device from 'expo-device';
 
 export interface GPSLocation {
   latitude: number;
@@ -11,58 +12,31 @@ export async function requestLocationPermission(): Promise<boolean> {
   return status === 'granted';
 }
 
-// Resolve as soon as we get a fix this accurate or better.
-// Falls back to the best reading seen after TIMEOUT_MS regardless.
-const ACCURACY_TARGET_M = 30;
-const TIMEOUT_MS = 8_000;
+const SIMULATOR_LOCATION: GPSLocation = {
+  latitude:  43.472747884244676,
+  longitude: -80.53981750670509,
+  accuracy:  5,
+};
 
 export async function getCurrentLocation(): Promise<GPSLocation | null> {
+  if (!Device.isDevice) {
+    return SIMULATOR_LOCATION;
+  }
+
   try {
     const hasPermission = await requestLocationPermission();
     if (!hasPermission) return null;
 
-    return await new Promise<GPSLocation | null>((resolve) => {
-      let resolved = false;
-      let subscription: Location.LocationSubscription | null = null;
-      let bestFix: Location.LocationObject | null = null;
-
-      const finish = (loc: Location.LocationObject | null) => {
-        if (resolved) return;
-        resolved = true;
-        subscription?.remove();
-        if (!loc) { resolve(null); return; }
-        resolve({
-          latitude:  loc.coords.latitude,
-          longitude: loc.coords.longitude,
-          accuracy:  loc.coords.accuracy,
-        });
-      };
-
-      // Accept whatever we have once the timeout fires
-      const timer = setTimeout(() => finish(bestFix), TIMEOUT_MS);
-
-      Location.watchPositionAsync(
-        {
-          accuracy:         Location.Accuracy.BestForNavigation,
-          timeInterval:     200,
-          distanceInterval: 0,
-        },
-        (loc) => {
-          // Track the most accurate reading seen so far
-          const prevAcc = bestFix?.coords.accuracy ?? Infinity;
-          const newAcc  = loc.coords.accuracy      ?? Infinity;
-          if (newAcc < prevAcc) bestFix = loc;
-
-          // Resolve early once we hit the target
-          if (newAcc <= ACCURACY_TARGET_M) {
-            clearTimeout(timer);
-            finish(loc);
-          }
-        }
-      )
-        .then(sub => { subscription = sub; })
-        .catch(() => finish(null));
+    // Balanced accuracy uses WiFi/cell triangulation — resolves in <1 second
+    // anywhere, works indoors, no satellite lock required.
+    const loc = await Location.getCurrentPositionAsync({
+      accuracy: Location.Accuracy.Balanced,
     });
+    return {
+      latitude:  loc.coords.latitude,
+      longitude: loc.coords.longitude,
+      accuracy:  loc.coords.accuracy,
+    };
   } catch {
     return null;
   }

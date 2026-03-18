@@ -17,6 +17,7 @@ import {
   SCAN_TIMEOUT_MS,
   RSSI_POLL_INTERVAL_MS,
 } from '@/constants/ble';
+import { clearAllRequests } from './messageQueue';
 import { NetworkStatus, NodeInfo, RequestAck, SupplyRequest } from '@/types';
 import { IBLEService } from './bleInterface';
 import { MockBLEService } from './mockBle';
@@ -176,6 +177,8 @@ class BLEService implements IBLEService {
 
   private handleDisconnect() {
     this.clearTimers();
+    useRequestStore.getState().clearRequests();
+    clearAllRequests();
     useBLEStore.getState().disconnect();
   }
 

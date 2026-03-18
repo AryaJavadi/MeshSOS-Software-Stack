@@ -107,7 +107,7 @@ interface ActiveRoute {
 function AppInner() {
   const { state, dispatch } = useDashboard()
 
-  useGatewaySocket(dispatch)
+  useGatewaySocket(dispatch, () => startMockGateway(dispatch))
 
   // Theme persistence
   useEffect(() => {
@@ -119,8 +119,9 @@ function AppInner() {
     document.documentElement.classList.toggle('dark', state.theme === 'dark')
   }, [state.theme])
 
-  // Seed mock infrastructure on startup (all modes)
+  // Seed mock infrastructure on startup — skip if requests were hydrated from localStorage
   useEffect(() => {
+    if (state.requests.length > 0) return
     return startMockGateway(dispatch)
   }, [dispatch])
 

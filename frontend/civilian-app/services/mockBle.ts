@@ -14,6 +14,7 @@ import { NetworkStatus, NodeInfo, SupplyRequest } from '@/types';
 import { RSSI_POLL_INTERVAL_MS } from '@/constants/ble';
 import { IBLEService } from './bleInterface';
 import { API_URL } from '@/config';
+import { clearAllRequests } from './messageQueue';
 
 // ─── Mock data ────────────────────────────────────────────────────────────────
 
@@ -135,6 +136,8 @@ export class MockBLEService implements IBLEService {
 
   disconnect() {
     this.clearTimers();
+    useRequestStore.getState().clearRequests();
+    clearAllRequests();
     useBLEStore.getState().disconnect();
   }
 

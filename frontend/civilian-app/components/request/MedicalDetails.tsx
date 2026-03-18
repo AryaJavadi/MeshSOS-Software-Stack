@@ -350,15 +350,15 @@ export function MedicalDetails({ people, value, onChange }: MedicalDetailsProps)
                   <TextInput
                     style={styles.needInput}
                     value={detail?.specificNeed ?? ''}
-                    onChangeText={(t) => updateDetail(tier, { specificNeed: t.slice(0, 100) })}
+                    onChangeText={(t) => updateDetail(tier, { specificNeed: t.slice(0, 60) })}
                     placeholder="Describe condition and essential needs..."
                     placeholderTextColor={colors.textMuted}
                     multiline
                     textAlignVertical="top"
-                    maxLength={100}
+                    maxLength={60}
                   />
                   <Text style={styles.charCount}>
-                    {(detail?.specificNeed ?? '').length}/100
+                    {(detail?.specificNeed ?? '').length}/60
                   </Text>
                 </View>
               </View>

@@ -6,6 +6,7 @@ import { DMMono_400Regular, DMMono_500Medium } from '@expo-google-fonts/dm-mono'
 import * as SplashScreen from 'expo-splash-screen';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { bleService } from '@/services/ble';
+import { initQueue } from '@/services/messageQueue';
 import { useTheme } from '@/hooks/useTheme';
 import { useBroadcastPolling } from '@/hooks/useBroadcastPolling';
 
@@ -28,6 +29,7 @@ export default function RootLayout() {
     if (fontsLoaded) {
       SplashScreen.hideAsync();
       bleService.initialize();
+      initQueue();
     }
     return () => {
       bleService.destroy();
