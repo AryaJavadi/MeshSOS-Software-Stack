@@ -1,0 +1,9 @@
+timestamp,payload_bytes,label,hop_limit,pings_sent,acks_received,pdr_pct,delivered,avg_rssi_dbm,avg_snr_db,signal_quality,pass_fail
+2026-03-18T02:05:27Z,50,within_sf12_limit,3,3,2,66.7,True,-77.0,-0.9,GOOD,FAIL
+2026-03-18T02:06:17Z,100,meshsos_payload_max,3,3,3,100.0,True,-39.3,6.3,GOOD,PASS
+2026-03-18T02:07:23Z,150,above_sf12_below_sf7,3,3,1,33.3,True,-33.0,6.8,GOOD,FAIL
+2026-03-18T02:08:24Z,200,near_sf7_limit,3,3,1,33.3,True,-105.0,-5.0,MARGINAL,FAIL
+2026-03-18T02:08:35Z,250,above_sf7_limit_low,3,3,0,0.0,False,,,LOST,FAIL
+2026-03-18T02:08:46Z,300,above_sf7_limit,3,3,0,0.0,False,,,LOST,FAIL
+2026-03-18T02:08:57Z,400,stress_test,3,3,0,0.0,False,,,LOST,FAIL
+2026-03-18T02:09:08Z,500,upper_stress_test,3,3,0,0.0,False,,,LOST,FAIL
