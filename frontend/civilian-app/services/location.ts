@@ -13,8 +13,8 @@ export async function requestLocationPermission(): Promise<boolean> {
 }
 
 const SIMULATOR_LOCATION: GPSLocation = {
-  latitude:  43.472747884244676,
-  longitude: -80.53981750670509,
+  latitude:  43.4723,
+  longitude: -80.5449,
   accuracy:  5,
 };
 
@@ -25,20 +25,25 @@ export async function getCurrentLocation(): Promise<GPSLocation | null> {
 
   try {
     const hasPermission = await requestLocationPermission();
-    if (!hasPermission) return null;
+    if (!hasPermission) return SIMULATOR_LOCATION;
 
     // Balanced accuracy uses WiFi/cell triangulation — resolves in <1 second
     // anywhere, works indoors, no satellite lock required.
-    const loc = await Location.getCurrentPositionAsync({
-      accuracy: Location.Accuracy.Balanced,
-    });
+    // 5-second timeout guards against indefinite hangs when location services
+    // are restricted or slow; catch block returns SIMULATOR_LOCATION fallback.
+    const loc = await Promise.race([
+      Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced }),
+      new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error('timeout')), 5000),
+      ),
+    ]);
     return {
       latitude:  loc.coords.latitude,
       longitude: loc.coords.longitude,
       accuracy:  loc.coords.accuracy,
     };
   } catch {
-    return null;
+    return SIMULATOR_LOCATION;
   }
 }
 

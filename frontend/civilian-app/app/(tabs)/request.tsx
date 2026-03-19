@@ -197,7 +197,7 @@ export default function RequestScreen() {
   const styles = useMemo(() => makeStyles(colors), [colors]);
 
   const [supplyTypes, setSupplyTypes] = useState<SupplyType[]>([]);
-  const [people, setPeople] = useState<PeopleCount>({ adults: 1, children: 0, elderly: 0 });
+  const [people, setPeople] = useState<PeopleCount>({ adults: 0, children: 1, elderly: 0 });
   const [medicalDetails, setMedicalDetails] = useState<MedicalDetailsState>({
     adults: null, children: null, elderly: null,
   });
@@ -242,7 +242,7 @@ export default function RequestScreen() {
     await clearDraft();
 
     setSupplyTypes([]);
-    setPeople({ adults: 1, children: 0, elderly: 0 });
+    setPeople({ adults: 0, children: 1, elderly: 0 });
     setMedicalDetails({ adults: null, children: null, elderly: null });
     setAdditionalInfo('');
     setLatitude(null);

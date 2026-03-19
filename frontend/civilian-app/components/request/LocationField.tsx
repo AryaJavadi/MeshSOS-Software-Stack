@@ -71,7 +71,7 @@ export function LocationField({ latitude, longitude, onLocationCaptured }: Locat
   useEffect(() => {
     if (latitude !== null && longitude !== null) return;
     captureLocation();
-  }, []);
+  }, [latitude, longitude]);
 
   async function captureLocation() {
     setLoading(true);

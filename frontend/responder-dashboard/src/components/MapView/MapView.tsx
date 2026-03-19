@@ -101,7 +101,9 @@ function ClusteredRequestPins() {
       const ring = highlight ? `, 0 0 0 3px ${accentColor}55` : ''
       const emoji = req.supplies.includes('medical') || req.medicalProfiles.length > 0
         ? '🧰'
-        : req.supplies.includes('water') ? '💧' : '🍎'
+        : req.supplies.includes('water') ? '💧'
+        : req.supplies.includes('other') ? '✏️'
+        : '🍎'
 
       const icon = L.divIcon({
         html: `<div style="width:${size}px;height:${size}px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);background:${color};border:${border};box-shadow:0 2px 8px rgba(0,0,0,0.35)${ring};display:flex;align-items:center;justify-content:center;"><span style="transform:rotate(45deg);font-size:${highlight ? 12 : 10}px">${emoji}</span></div>`,

@@ -372,10 +372,11 @@ def _translate_supply_request(body: dict) -> dict:
         detail = medical_details.get(civilian_key)
         if not detail:
             continue
-        condition = detail.get("conditionType") or "other"
-        condition = condition_map.get(condition, condition)
+        raw_condition = detail.get("conditionType")  # None if user didn't select one
+        condition = condition_map.get(raw_condition, raw_condition) if raw_condition else "other"
         specific_need = (detail.get("specificNeed") or "").strip()
-        if not specific_need:
+        # Include profile if conditionType was selected OR specific need was entered
+        if not raw_condition and not specific_need:
             continue
         count = people.get(civilian_key, 0)
         medical_profiles.append({

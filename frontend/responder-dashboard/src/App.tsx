@@ -119,9 +119,8 @@ function AppInner() {
     document.documentElement.classList.toggle('dark', state.theme === 'dark')
   }, [state.theme])
 
-  // Seed mock infrastructure on startup — skip if requests were hydrated from localStorage
+  // Seed mock infrastructure on every startup
   useEffect(() => {
-    if (state.requests.length > 0) return
     return startMockGateway(dispatch)
   }, [dispatch])
 
