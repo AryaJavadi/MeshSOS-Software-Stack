@@ -505,7 +505,7 @@ def _message_to_household_request(msg: dict) -> dict:
         "notes": payload or f"LoRa message (urgency {msg.get('urgency', 1)})",
         "medicalProfiles": [],
         "triageScore": 0,
-        "receivedAt": datetime.fromtimestamp(ts, tz=timezone.utc).isoformat(),
+        "receivedAt": datetime.now(timezone.utc).isoformat(),
     }
 
 
